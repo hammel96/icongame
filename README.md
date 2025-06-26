@@ -1,1 +1,197 @@
-# icongame
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WhatsApp Catch the Emoji Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #target-emoji {
+            font-size: 60px;
+            margin: 20px 0;
+        }
+        #emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .emoji-option {
+            font-size: 40px;
+            cursor: pointer;
+            padding: 15px;
+            background-color: #e6f7ff;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+        .emoji-option:hover {
+            transform: scale(1.1);
+            background-color: #b3e0ff;
+        }
+        #score-display, #timer-display {
+            font-size: 24px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        #start-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #start-btn:hover {
+            background-color: #45a049;
+        }
+        #game-over {
+            display: none;
+            font-size: 24px;
+            color: #ff4500;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>🎮 Catch the Emoji! 🎮</h1>
+        <p>Click the emoji that matches the target emoji before time runs out!</p>
+        
+        <div id="target-emoji">?</div>
+        <div id="timer-display">Time: 3s</div>
+        <div id="score-display">Score: 0</div>
+        
+        <div id="emoji-grid">
+            <!-- Emoji options will appear here -->
+        </div>
+        
+        <div id="game-over">Game Over!</div>
+        <button id="start-btn">Start Game</button>
+    </div>
+
+    <script>
+        const emojiList = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', 
+                          '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍒',
+                          '⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏉', '🎱', '🏓',
+                          '🚗', '🚕', '🚙', '🚌', '🚎', '🏎', '🚓', '🚑', '🚒'];
+        
+        let score = 0;
+        let timeLeft = 3;
+        let timer;
+        let targetEmoji;
+        let gameActive = false;
+        
+        const targetDisplay = document.getElementById('target-emoji');
+        const timerDisplay = document.getElementById('timer-display');
+        const scoreDisplay = document.getElementById('score-display');
+        const emojiGrid = document.getElementById('emoji-grid');
+        const gameOverDisplay = document.getElementById('game-over');
+        const startBtn = document.getElementById('start-btn');
+        
+        startBtn.addEventListener('click', startGame);
+        
+        function startGame() {
+            score = 0;
+            scoreDisplay.textContent = `Score: ${score}`;
+            gameOverDisplay.style.display = 'none';
+            startBtn.textContent = 'Playing...';
+            gameActive = true;
+            nextRound();
+        }
+        
+        function nextRound() {
+            // Clear previous emojis
+            emojiGrid.innerHTML = '';
+            
+            // Select random target emoji
+            targetEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+            targetDisplay.textContent = targetEmoji;
+            
+            // Create array with target emoji and 8 random wrong emojis
+            let options = [targetEmoji];
+            while(options.length < 9) {
+                const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+                if(!options.includes(randomEmoji)) {
+                    options.push(randomEmoji);
+                }
+            }
+            
+            // Shuffle options
+            options = shuffleArray(options);
+            
+            // Create emoji buttons
+            options.forEach(emoji => {
+                const emojiBtn = document.createElement('div');
+                emojiBtn.className = 'emoji-option';
+                emojiBtn.textContent = emoji;
+                emojiBtn.addEventListener('click', () => checkAnswer(emoji));
+                emojiGrid.appendChild(emojiBtn);
+            });
+            
+            // Start timer
+            timeLeft = 3;
+            updateTimerDisplay();
+            clearInterval(timer);
+            timer = setInterval(updateTimer, 1000);
+        }
+        
+        function checkAnswer(selectedEmoji) {
+            if(!gameActive) return;
+            
+            clearInterval(timer);
+            
+            if(selectedEmoji === targetEmoji) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                setTimeout(nextRound, 1000);
+            } else {
+                endGame();
+            }
+        }
+        
+        function updateTimer() {
+            timeLeft--;
+            updateTimerDisplay();
+            
+            if(timeLeft <= 0) {
+                clearInterval(timer);
+                endGame();
+            }
+        }
+        
+        function updateTimerDisplay() {
+            timerDisplay.textContent = `Time: ${timeLeft}s`;
+        }
+        
+        function endGame() {
+            gameActive = false;
+            clearInterval(timer);
+            targetDisplay.textContent = '⌛';
+            gameOverDisplay.style.display = 'block';
+            gameOverDisplay.textContent = `Game Over! Final Score: ${score}`;
+            startBtn.textContent = 'Play Again';
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
